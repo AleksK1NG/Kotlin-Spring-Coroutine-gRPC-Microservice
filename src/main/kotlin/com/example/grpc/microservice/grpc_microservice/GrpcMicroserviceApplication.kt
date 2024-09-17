@@ -33,10 +33,10 @@ class OrderClient {
     @GrpcClient("local-server")
     lateinit var orderGrpcClient: OrderServiceGrpcKt.OrderServiceCoroutineStub
 
-    suspend fun getOrder(): GetOrderByIdResponse {
+    suspend fun getOrder(): GetOrderByIdResponse = coroutineScope {
         val response = orderGrpcClient.getOrderById(getOrderByIdRequest { id = UUID.randomUUID().toString() })
         log.info("gRPC client response: $response")
-        return response
+        response
     }
 
     companion object {
