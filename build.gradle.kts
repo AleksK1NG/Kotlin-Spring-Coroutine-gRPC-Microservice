@@ -34,6 +34,10 @@ dependencies {
 	implementation("io.grpc:grpc-kotlin-stub:1.4.1")
 	implementation("io.grpc:grpc-protobuf:1.66.0")
 	implementation("com.google.protobuf:protobuf-kotlin:4.28.1")
+	implementation("net.devh:grpc-spring-boot-starter:3.1.0.RELEASE") {
+//		exclude(group = "io.grpc", module = "grpc-netty-shaded")
+	}
+	implementation("io.grpc:grpc-netty-shaded:1.66.0")
 
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
