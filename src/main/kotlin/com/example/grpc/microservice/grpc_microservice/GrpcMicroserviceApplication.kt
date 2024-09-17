@@ -7,12 +7,14 @@ import io.grpc.ServerCallHandler
 import io.grpc.ServerInterceptor
 import io.grpc.kotlin.CoroutineContextServerInterceptor
 import kotlinx.coroutines.coroutineScope
+import net.devh.boot.grpc.client.inject.GrpcClient
 import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor
 import net.devh.boot.grpc.server.service.GrpcService
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Configuration
+import org.springframework.stereotype.Component
 import java.util.*
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
@@ -24,19 +26,45 @@ fun main(args: Array<String>) {
     runApplication<GrpcMicroserviceApplication>(*args)
 }
 
+
+@Component
+class OrderClient {
+
+    @GrpcClient("local-server")
+    lateinit var orderGrpcClient: OrderServiceGrpcKt.OrderServiceCoroutineStub
+
+    suspend fun getOrder(): GetOrderByIdResponse {
+        val response = orderGrpcClient.getOrderById(getOrderByIdRequest { id = UUID.randomUUID().toString() })
+        log.info("gRPC client response: $response")
+        return response
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(this::class.java)
+    }
+}
+
 @GrpcService
-class OrderService : OrderServiceGrpcKt.OrderServiceCoroutineImplBase() {
+class OrderService(private val orderGrpcClient: OrderClient) : OrderServiceGrpcKt.OrderServiceCoroutineImplBase() {
 
     override suspend fun createOrder(request: CreateOrderRequest): CreateOrderResponse = coroutineScope {
         log.info("gRPC createOrder request: $request")
         val metadata = coroutineContext[GrpcRequestContext]
         log.info("gRPC metadata: $metadata")
+
+        val response = orderGrpcClient.getOrder()
+        log.info("gRPC response : $response")
+
         createOrderResponse {
             order = orderProto {
                 id = UUID.randomUUID().toString()
                 email = "Alex@gmail.com"
             }
         }
+    }
+
+    override suspend fun getOrderById(request: GetOrderByIdRequest): GetOrderByIdResponse = coroutineScope {
+        getOrderByIdResponse { order = orderProto { id = request.id } }
     }
 
     companion object {
