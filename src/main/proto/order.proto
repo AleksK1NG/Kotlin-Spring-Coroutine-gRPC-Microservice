@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package com.example.microservices.grpc.order;
+
+option java_multiple_files = true;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+
+service OrderService {
+  rpc createOrder(CreateOrderRequest) returns (CreateOrderResponse);
+  rpc getOrderById(GetOrderByIdRequest) returns (GetOrderByIdResponse);
+}
+
+message GetOrderByIdRequest {
+  string id = 1;
+}
+
+message GetOrderByIdResponse {
+  OrderProto Order = 1;
+}
+
+message CreateOrderRequest {
+  string email = 1;
+  string phone = 2;
+  string address = 3;
+  repeated OrderItemProto items = 4;
+}
+
+message CreateOrderResponse {
+  OrderProto Order = 1;
+}
+
+message OrderProto {
+  string id = 1;
+  string email = 2;
+  string phone = 3;
+  string address = 4;
+  repeated OrderItemProto items = 5;
+  int64 version = 6;
+  google.protobuf.Timestamp createdAt = 7;
+  google.protobuf.Timestamp updatedAt = 8;
+}
+
+message OrderItemProto {
+  string id = 1;
+  string title = 2;
+  int64 amount = 3;
+}
